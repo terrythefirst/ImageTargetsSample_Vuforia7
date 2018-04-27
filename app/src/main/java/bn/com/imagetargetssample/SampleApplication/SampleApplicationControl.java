@@ -12,50 +12,42 @@ package bn.com.imagetargetssample.SampleApplication;
 import com.vuforia.State;
 
 
+//  activity实现SampleApplication接口后 可以控制 SampleApplicationSession
 //  Interface to be implemented by the activity which uses SampleApplicationSession
 public interface SampleApplicationControl
 {
-    
-    // To be called to initialize the trackers
+
+    // 初始化追踪器(trackers)
     boolean doInitTrackers();
     
-    
-    // To be called to load the trackers' data
+    // 加载追踪器数据
     boolean doLoadTrackersData();
     
-    
-    // To be called to start tracking with the initialized trackers and their
-    // loaded data
+
+    //开始追踪
     boolean doStartTrackers();
     
-    
-    // To be called to stop the trackers
+    //停止追踪
     boolean doStopTrackers();
     
-    
-    // To be called to destroy the trackers' data
+    //停用追踪器数据
     boolean doUnloadTrackersData();
     
-    
-    // To be called to deinitialize the trackers
+    //关闭追踪器
     boolean doDeinitTrackers();
     
-    
-    // This callback is called after the Vuforia initialization is complete,
-    // the trackers are initialized, their data loaded and
-    // tracking is ready to start
+    // 当Vuforia初始化完成后调用
+    // 此时追踪器已经完成初始化，数据已经载入，追踪器可以启动了
     void onInitARDone(SampleApplicationException e);
     
-    
+    // 周期调用更新函数
     // This callback is called every cycle
     void onVuforiaUpdate(State state);
 
-
-    // This callback is called on Vuforia resume
+    //Vuforia恢复时调用
     void onVuforiaResumed();
 
-
-    // This callback is called once Vuforia has been started
+    //Vuforia启动时调用
     void onVuforiaStarted();
     
 }

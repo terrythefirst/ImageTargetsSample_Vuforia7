@@ -56,17 +56,6 @@
         android:launchMode="singleTask"
         android:roundIcon="@drawable/icon"
         android:theme="@style/SampleAppsTheme">
-        <activity android:name=".ui.ActivityAndRenderer.ActivitySplashScreen"
-            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
-            android:screenOrientation="portrait"
-            android:noHistory="true"
-            >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity
             android:name=".ui.ActivityAndRenderer.ImageTargetsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize"
@@ -74,6 +63,11 @@
             android:theme="@style/SampleAppsTheme"
             android:launchMode="singleTask"
             >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 

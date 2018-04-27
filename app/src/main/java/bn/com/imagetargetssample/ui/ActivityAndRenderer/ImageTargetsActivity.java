@@ -49,16 +49,14 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     private int mDatasetsNumber = 0;
     private ArrayList<String> mDatasetStrings = new ArrayList<String>();
 
-    // Our OpenGL view:
-    private SampleApplicationGLView mGlView;
+    // OpenGL view:
+    public MySampleApplicationGLView mGlView;
 
-    // Our renderer:
+    // renderer:
     private ImageTargetRenderer mRenderer;
 
     private GestureDetector mGestureDetector;
 
-    // The textures we will use for rendering:
-    private Vector<Texture> mTextures;
 
     private boolean mSwitchDatasetAsap = false;
     private boolean mFlash = false;
@@ -69,14 +67,13 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
 
     LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(this);
 
-    // Alert Dialog used to display SDK errors
+    // SDK 错误对话框
     private AlertDialog mErrorDialog;
 
     boolean mIsDroidDevice = false;
 
 
-    // Called when the activity first starts or the user navigates back to an
-    // activity.
+    // 第一次启动 ，应用重建（recreated）时恢复（resumed）或者 配置发生改变时 被调用
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -94,19 +91,17 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
 
         mGestureDetector = new GestureDetector(this, new GestureListener());
 
-        // Load any sample specific textures:
-        mTextures = new Vector<Texture>();
-        loadTextures();
 
         mIsDroidDevice = android.os.Build.MODEL.toLowerCase().startsWith(
                 "droid");
 
     }
 
-    // Process Single Tap event to trigger autofocus
+    // 通过单次触碰事件实现自动对焦
     private class GestureListener extends
             GestureDetector.SimpleOnGestureListener
     {
+        // 用来在手动对焦（manual focus）一秒后自动对焦
         // Used to set autofocus one second after a manual focus is triggered
         private final Handler autofocusHandler = new Handler();
 
@@ -126,6 +121,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
             if (!result)
                 Log.e("SingleTapUp", "Unable to trigger focus");
 
+            // 一秒后生成一个Handler来触发连续不断的自动对焦
             // Generates a Handler to trigger continuous auto-focus
             // after 1 second
             autofocusHandler.postDelayed(new Runnable()
@@ -147,23 +143,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         }
     }
 
-
-    // We want to load specific textures from the APK, which we will later use
-    // for rendering.
-
-    private void loadTextures()
-    {
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotBrass.png",
-                getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotBlue.png",
-                getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("TextureTeapotRed.png",
-                getAssets()));
-        mTextures.add(Texture.loadTextureFromApk("ImageTargets/Buildings.jpeg",
-                getAssets()));
-    }
-
-
+    // 在用户开始与activity交互时调用
     // Called when the activity will start interacting with the user.
     @Override
     protected void onResume()
@@ -173,6 +153,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
 
         showProgressIndicator(true);
 
+        // 强制竖屏
         // This is needed for some Droid devices to force portrait
         if (mIsDroidDevice)
         {
@@ -184,7 +165,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     }
 
 
-    // Callback for configuration changes the activity handles itself
+    // 当配置发生变化时回调
     @Override
     public void onConfigurationChanged(Configuration config)
     {
@@ -195,7 +176,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     }
 
 
-    // Called when the system is about to start resuming a previous activity.
+    // 在系统马上开始恢复（resume）之前的一个activity时调用
     @Override
     protected void onPause()
     {
@@ -218,7 +199,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     }
 
 
-    // The final call you receive before your activity is destroyed.
+    // 在activity被destroyed之前调用
     @Override
     protected void onDestroy()
     {
@@ -233,27 +214,21 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
             Log.e(LOGTAG, e.getString());
         }
 
-        // Unload texture:
-        mTextures.clear();
-        mTextures = null;
-
         System.gc();
     }
 
 
-    // Initializes AR application components.
+    // 初始化AR application components.
     private void initApplicationAR()
     {
-        // Create OpenGL ES view:
+        // 创建OpenGL ES view:
         int depthSize = 16;
         int stencilSize = 0;
         boolean translucent = Vuforia.requiresAlpha();
 
-        mGlView = new SampleApplicationGLView(this);
-        mGlView.init(translucent, depthSize, stencilSize);
+        mGlView = new MySampleApplicationGLView(this,translucent, depthSize, stencilSize);
 
         mRenderer = new ImageTargetRenderer(this, vuforiaAppSession);
-        mRenderer.setTextures(mTextures);
         mGlView.setRenderer(mRenderer);
     }
 
@@ -266,14 +241,15 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
         mUILayout.setVisibility(View.VISIBLE);
         mUILayout.setBackgroundColor(Color.BLACK);
 
+        //得到加载对话框引用
         // Gets a reference to the loading dialog
         loadingDialogHandler.mLoadingDialogContainer = mUILayout
                 .findViewById(R.id.loading_indicator);
-
+        // 开始时显示载入进度
         // Shows the loading indicator at start
         loadingDialogHandler
                 .sendEmptyMessage(LoadingDialogHandler.SHOW_LOADING_DIALOG);
-
+        // 添加摄像机叠加view
         // Adds the inflated layout to the view
         addContentView(mUILayout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
@@ -281,11 +257,12 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     }
 
 
-    // Methods to load and destroy tracking data.
+    // 载入/摧毁追踪器数据的方法
     @Override
     public boolean doLoadTrackersData()
     {
-        TrackerManager tManager = TrackerManager.getInstance();
+        // 拿到图像追踪器引用
+        TrackerManager tManager = TrackerManager.getInstance();//使用单例模式得到TrackerManager对象的引用
         ObjectTracker objectTracker = (ObjectTracker) tManager
                 .getTracker(ObjectTracker.getClassType());
         if (objectTracker == null)
@@ -327,7 +304,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     @Override
     public boolean doUnloadTrackersData()
     {
-        // Indicate if the trackers were unloaded correctly
+        // 追踪器正确卸载标识
         boolean result = true;
 
         TrackerManager tManager = TrackerManager.getInstance();
@@ -407,12 +384,14 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     public void onInitARDone(SampleApplicationException exception)
     {
 
-        if (exception == null)
+        if (exception == null)//没有问题时
         {
             initApplicationAR();
 
             mRenderer.setActive(true);
 
+            // 添加GL surface view.
+            // 注意：GL surface view要在摄像机启动且配置video background配置前添加
             // Now add the GL surface view. It is important
             // that the OpenGL ES surface view gets added
             // BEFORE the camera is started and video
@@ -420,23 +399,24 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
             addContentView(mGlView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT));
 
+            //将UILayout拖到摄像机前
             // Sets the UILayout to be drawn in front of the camera
             mUILayout.bringToFront();
 
+            // layout背景设置为透明
             // Sets the layout background to transparent
             mUILayout.setBackgroundColor(Color.TRANSPARENT);
 
             vuforiaAppSession.startAR(CameraDevice.CAMERA_DIRECTION.CAMERA_DIRECTION_DEFAULT);
 
-        } else
+        } else//有问题时提示错误
         {
             Log.e(LOGTAG, exception.getString());
             showInitializationErrorMessage(exception.getString());
         }
     }
 
-
-    // Shows initialization error messages as System dialogs
+    //在系统对话框中显示初始化错误信息
     public void showInitializationErrorMessage(String message)
     {
         final String errorMessage = message;
@@ -448,8 +428,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
                 {
                     mErrorDialog.dismiss();
                 }
-
-                // Generates an Alert Dialog to show the error message
+                // 创建警示对话框显示错误信息
                 AlertDialog.Builder builder = new AlertDialog.Builder(
                         ImageTargetsActivity.this);
                 builder
@@ -474,7 +453,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
 
 
     @Override
-    public void onVuforiaUpdate(State state)
+    public void onVuforiaUpdate(State state)// 每个周期回调更新
     {
         if (mSwitchDatasetAsap)
         {
@@ -498,7 +477,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     @Override
     public boolean doInitTrackers()
     {
-        // Indicate if the trackers were initialized correctly
+        // 正确初始化追踪器标识
         boolean result = true;
 
         TrackerManager tManager = TrackerManager.getInstance();
@@ -523,6 +502,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     @Override
     public boolean doStartTrackers()
     {
+        // 追踪器是否正常启动标志
         // Indicate if the trackers were started correctly
         boolean result = true;
 
@@ -538,6 +518,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     @Override
     public boolean doStopTrackers()
     {
+        // 追踪器是否正常关闭标志
         // Indicate if the trackers were stopped correctly
         boolean result = true;
 
@@ -553,6 +534,7 @@ public class ImageTargetsActivity extends Activity implements SampleApplicationC
     @Override
     public boolean doDeinitTrackers()
     {
+        // 追踪器正确关闭标识
         // Indicate if the trackers were deinitialized correctly
         boolean result = true;
 
